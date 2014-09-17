@@ -3,6 +3,7 @@ from train import *
 from platform import *
 from outerline import *
 from db import *
+import time
 
 waitinglist = []        # Trains that not on any platform yet
 trainl = []             # List of all trains
@@ -94,6 +95,7 @@ class App:
     def sim(self):
         global startstate
         startstate = True
+        counter_label(timer)
         master.after(10, simulate)
         self.start.config(state=DISABLED)
         self.stop.config(state=NORMAL)
@@ -105,11 +107,9 @@ class App:
         self.stop.config(state=DISABLED)
 
 
-
 def schedule():
     for t in getTrainList().find():
         print t['code'], t['name']
-
 
 def simulate():
     global startstate
@@ -122,8 +122,21 @@ def simulate():
     if startstate:
         master.after(10, simulate)
 
+counter = 0 
+def counter_label(label):
+    def count():
+        global counter
+        global startstate
+        counter += 1
+        label.config(text="Timer: "+time.strftime("%H:%M", time.gmtime(counter)))
+        if(startstate):
+            label.after(1, count)
+    count()
 
 master = Tk()
+Label(master, text="Welcome To NDLS Railway Station",fg = "black",font = "Helvetica 18 bold").pack()
+timer = Label(master, fg="black", font = "Helvetica 18 bold")
+timer.pack()
 app = App(master)
 schedule()
 master.mainloop()
