@@ -4,9 +4,12 @@ class Platform(object):
         self.occupied = False
         self.status = True
         self.train = None
+        self.x = 350
         if self.platformNo%2==0:
             self.body = w.create_rectangle(350, 30*self.platformNo, 850,
                                 30*self.platformNo+15, fill="#444")
+            self.trainy = 30*self.platformNo-15
         else:
-            self.body = w.create_rectangle(350, 60*self.platformNo-45, 850,
-                                60*self.platformNo-30, fill="#444")
+            self.body = w.create_rectangle(350, 30*(self.platformNo)-15, 850,
+                                30*(self.platformNo), fill="#444")
+            self.trainy = 30*self.platformNo

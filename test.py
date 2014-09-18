@@ -16,6 +16,7 @@ startstate = False
 fps = 100/6
 counter = 19*60*60
 timecnt = ''
+maxrows = len(list(getTrainList().find()))
 
 class App:
 
@@ -135,7 +136,6 @@ def simulate():
             t.platform = 0
             t.status = "departed"
             del pltrains[pltrains.index(t)]
-            # remove this train from schedule table
 
     for t in outertrains:
         flag = 0
@@ -144,6 +144,7 @@ def simulate():
                 flag = 1
                 outer = t.outerline
                 t.vel = 2
+                t.y = p.trainy
                 t.platform = p.platformNo
                 t.status = "arrived"
                 p.occupied = True
@@ -198,6 +199,7 @@ def counter_label(label):
 
 def data():
     #Label(frame,text="Train Code                    "+"Train Name                  "+ "Arrival Time               "+"Departure Time             "+"Arrival Platform Number               ").grid(row=0,column=1)
+    global maxrows
     Label(frame).grid(row=0,column=0,padx=100)
     Label(frame,text="Train Code",font = "Helvetica 14 bold").grid(row=0,column=4,padx=30)
     Label(frame,text="Train Name",font = "Helvetica 14 bold").grid(row=0,column=8,padx=30)
@@ -206,12 +208,20 @@ def data():
     Label(frame,text="Platform Number",font = "Helvetica 14 bold").grid(row=0,column=20,padx=30)
     i = 0
     for trains in waitingtrains:
-       Label(frame,text=trains.code,font = "Helvetica 10").grid(row=i+1,column=4)
-       Label(frame,text=trains.name,font = "Helvetica 10").grid(row=i+1,column=8)
-       Label(frame,text=trains.arrival,font = "Helvetica 10").grid(row=i+1,column=12)
-       Label(frame,text=trains.departure,font = "Helvetica 10").grid(row=i+1,column=16)
-       Label(frame,text=trains.platform,font = "Helvetica 10").grid(row=i+1,column=20)
-       i = i+1
+        Label(frame,text=trains.code,font = "Helvetica 10").grid(row=i+1,column=4)
+        Label(frame,text=trains.name,font = "Helvetica 10").grid(row=i+1,column=8)
+        Label(frame,text=trains.arrival,font = "Helvetica 10").grid(row=i+1,column=12)
+        Label(frame,text=trains.departure,font = "Helvetica 10").grid(row=i+1,column=16)
+        Label(frame,text=trains.platform,font = "Helvetica 10").grid(row=i+1,column=20)
+        i = i+1
+    while i<maxrows:
+        Label(frame,text="",font = "Helvetica 10").grid(row=i+1,column=4)
+        Label(frame,text="",font = "Helvetica 10").grid(row=i+1,column=8)
+        Label(frame,text="",font = "Helvetica 10").grid(row=i+1,column=12)
+        Label(frame,text="",font = "Helvetica 10").grid(row=i+1,column=16)
+        Label(frame,text="",font = "Helvetica 10").grid(row=i+1,column=20)
+        i = i+1
+
 
 def myfunction(event):
     canvas.configure(scrollregion=canvas.bbox("all"),width=master.winfo_screenwidth()-100,height=200)
