@@ -16,7 +16,8 @@ class Train(object):
 
     def update(self, w):
         """ Called each frame. """
-        w.move(self.body, self.vel, self.y-30)
-        w.move(self.label, self.vel, self.y-30)
+        w.move(self.body, self.vel, 0)
+        w.move(self.label, self.vel, 0)
         self.x = w.coords(self.body)[0]
+        self.y = w.coords(self.body)[1]
         w.update()

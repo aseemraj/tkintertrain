@@ -14,9 +14,10 @@ platforml = []          # List of all platforms
 outerl = []             # List of outerlines
 startstate = False
 fps = 100/6
-counter = 19*60*60
+counter = 0
 timecnt = ''
-maxrows = len(list(getTrainList().find()))
+mx = len(list(getTrainList().find()))+1
+tablegrid = [[None for x in range(5)] for y in range(mx)]
 
 class App:
 
@@ -73,7 +74,7 @@ class App:
         master.after(10, simulate)
         self.start.config(state=DISABLED)
         self.stop.config(state=NORMAL)
-        data()
+        dataupdate()
     
     def stop(self):
         global startstate
@@ -114,13 +115,13 @@ def schedule():
 def finddep(arrival, category):
     [hour, mint] = arrival.split(':')
     if category=="Passing":
-        if int(mint)>=45:
-            hour = str((int(hour)+1)%24)
-        mint=str((int(mint)+15)%60)
-    else:
         if int(mint)>=55:
             hour = str((int(hour)+1)%24)
         mint=str((int(mint)+5)%60)
+    else:
+        if int(mint)>=45:
+            hour = str((int(hour)+1)%24)
+        mint=str((int(mint)+15)%60)
     if len(hour)<2:
         hour = '0'+hour
     if len(mint)<2:
@@ -129,13 +130,19 @@ def finddep(arrival, category):
 
 
 def simulate():
-    global startstate
+    global startstate, pltrains, outertrains, waitingtrains
+    global trainl, platforml, outerl
     for t in pltrains:
         if timecnt>=t.departure:
-            t.vel = 2
+            t.vel = 3
             t.platform = 0
             t.status = "departed"
-            del pltrains[pltrains.index(t)]
+            for p in platforml:
+                if p.train==t and t.x>=400:
+                    p.train = None
+                    p.occupied = False
+                    del pltrains[pltrains.index(t)]
+                    break
 
     for t in outertrains:
         flag = 0
@@ -143,8 +150,9 @@ def simulate():
             if not p.occupied and p.status:
                 flag = 1
                 outer = t.outerline
-                t.vel = 2
-                t.y = p.trainy
+                t.vel = 3
+                app.w.move(t.body, 0, p.trainy-t.y)
+                app.w.move(t.label, 0, p.trainy-t.y)
                 t.platform = p.platformNo
                 t.status = "arrived"
                 p.occupied = True
@@ -164,19 +172,28 @@ def simulate():
         flag = 0
         if timecnt>=t.arrival:
             for p in platforml:
-                if not p.occupied and p.status:
+                if (not p.occupied) and p.status:
                     flag = 1
-                    t.vel = 2
+                    t.vel = 3
                     t.platform = p.platformNo
+                    app.w.move(t.body, 0, p.trainy-t.y)
+                    app.w.move(t.label, 0, p.trainy-t.y)
                     t.status = "arrived"
                     p.occupied = True
                     p.train = t
                     del waitingtrains[waitingtrains.index(t)]
-                    data()
+                    dataupdate()
                     pltrains.append(t)
                     break
-        if flag==0:
-            break
+            if flag==0:
+                for ol in outerl:
+                    if not ol.occupied:
+                        ol.occupied = True
+                        ol.train = t
+                        del waitingtrains[waitingtrains.index(t)]
+                        outertrains.append(t)
+                        ol.update(app.w)
+                break
 
     for t in trainl:
         if (t.x<400 and t.status=='arrived') or t.status=='departed':
@@ -192,35 +209,70 @@ def counter_label(label):
         global counter, startstate, timecnt
         counter += 1
         timecnt = time.strftime("%H:%M", time.gmtime(counter))
-        label.config(text="Timer: "+time.strftime("%H:%M", time.gmtime(counter)))
+        label.config(text="Time: "+time.strftime("%H:%M", time.gmtime(counter)))
         if(startstate):
             label.after(fps, count)
     count()
 
 def data():
-    #Label(frame,text="Train Code                    "+"Train Name                  "+ "Arrival Time               "+"Departure Time             "+"Arrival Platform Number               ").grid(row=0,column=1)
-    global maxrows
+    global tablegrid
     Label(frame).grid(row=0,column=0,padx=100)
-    Label(frame,text="Train Code",font = "Helvetica 14 bold").grid(row=0,column=4,padx=30)
-    Label(frame,text="Train Name",font = "Helvetica 14 bold").grid(row=0,column=8,padx=30)
-    Label(frame,text="Arrival Time",font = "Helvetica 14 bold").grid(row=0,column=12,padx=30)
-    Label(frame,text="Departure Time",font = "Helvetica 14 bold").grid(row=0,column=16,padx=30)
-    Label(frame,text="Platform Number",font = "Helvetica 14 bold").grid(row=0,column=20,padx=30)
+    currow = []
+    label = Label(frame, text="Train Code",font = "Helvetica 14 bold")
+    label.grid(row=0,column=4,padx=30)
+    currow.append(label)
+    label = Label(frame,text="Train Name",font = "Helvetica 14 bold")
+    label.grid(row=0,column=8,padx=30)
+    currow.append(label)
+    label = Label(frame,text="Arrival Time",font = "Helvetica 14 bold")
+    label.grid(row=0,column=12,padx=30)
+    currow.append(label)
+    label = Label(frame,text="Departure Time",font = "Helvetica 14 bold")
+    label.grid(row=0,column=16,padx=30)
+    currow.append(label)
+    label = Label(frame,text="Platform Number",font = "Helvetica 14 bold")
+    label.grid(row=0,column=20,padx=30)
+    currow.append(label)
+    tablegrid[0] = currow
     i = 0
     for trains in waitingtrains:
-        Label(frame,text=trains.code,font = "Helvetica 10").grid(row=i+1,column=4)
-        Label(frame,text=trains.name,font = "Helvetica 10").grid(row=i+1,column=8)
-        Label(frame,text=trains.arrival,font = "Helvetica 10").grid(row=i+1,column=12)
-        Label(frame,text=trains.departure,font = "Helvetica 10").grid(row=i+1,column=16)
-        Label(frame,text=trains.platform,font = "Helvetica 10").grid(row=i+1,column=20)
+        currow = []
+        label = Label(frame,text=trains.code,font = "Helvetica 10")
+        label.grid(row=i+1,column=4)
+        currow.append(label)
+        label = Label(frame,text=trains.name,font = "Helvetica 10")
+        label.grid(row=i+1,column=8)
+        currow.append(label)
+        label = Label(frame,text=trains.arrival,font = "Helvetica 10")
+        label.grid(row=i+1,column=12)
+        currow.append(label)
+        label = Label(frame,text=trains.departure,font = "Helvetica 10")
+        label.grid(row=i+1,column=16)
+        currow.append(label)
+        label = Label(frame,text=trains.platform,font = "Helvetica 10")
+        label.grid(row=i+1,column=20)
+        currow.append(label)
+        tablegrid[i+1] = currow
+        i+=1
+
+def dataupdate():
+    global tablegrid
+    i = 1
+    for t in waitingtrains:
+        tablegrid[i][0].configure(text=t.code)
+        tablegrid[i][1].configure(text=t.name)
+        tablegrid[i][2].configure(text=t.arrival)
+        tablegrid[i][3].configure(text=t.departure)
+        tablegrid[i][4].configure(text=t.platform)
         i = i+1
-    while i<maxrows:
-        Label(frame,text="",font = "Helvetica 10").grid(row=i+1,column=4)
-        Label(frame,text="",font = "Helvetica 10").grid(row=i+1,column=8)
-        Label(frame,text="",font = "Helvetica 10").grid(row=i+1,column=12)
-        Label(frame,text="",font = "Helvetica 10").grid(row=i+1,column=16)
-        Label(frame,text="",font = "Helvetica 10").grid(row=i+1,column=20)
+    while i<mx:
+        tablegrid[i][0].configure(text='')
+        tablegrid[i][1].configure(text='')
+        tablegrid[i][2].configure(text='')
+        tablegrid[i][3].configure(text='')
+        tablegrid[i][4].configure(text='')
         i = i+1
+
 
 
 def myfunction(event):
@@ -252,8 +304,8 @@ myscrollbar.pack(side="right",fill="y")
 canvas.pack(side="left")
 canvas.create_window((0,0),window=frame,anchor='nw')
 frame.bind("<Configure>",myfunction)
-data()
 # things related to train timetable over
 
 schedule()
+data()
 master.mainloop()

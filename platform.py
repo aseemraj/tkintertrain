@@ -6,10 +6,10 @@ class Platform(object):
         self.train = None
         self.x = 350
         if self.platformNo%2==0:
-            self.body = w.create_rectangle(350, 30*self.platformNo, 850,
-                                30*self.platformNo+15, fill="#444")
-            self.trainy = 30*self.platformNo-15
+            self.body = w.create_rectangle(350, 35*self.platformNo, 850,
+                                35*self.platformNo+15, fill="#444")
+            self.trainy = 35*self.platformNo-15
         else:
-            self.body = w.create_rectangle(350, 30*(self.platformNo)-15, 850,
-                                30*(self.platformNo), fill="#444")
-            self.trainy = 30*self.platformNo
+            self.body = w.create_rectangle(350, 35*(self.platformNo)-20, 850,
+                                35*(self.platformNo)-5, fill="#444")
+            self.trainy = 35*self.platformNo-5
