@@ -1,6 +1,6 @@
 class Train(object):
     """Name of the train along with his trainCode, Arrival Time Departure Time"""
-    def __init__(self, w, code, name, arrival, departure, platform=0, outerline=0, status="notarrived"):
+    def __init__(self, w, code, name, arrival, departure, category, platform=0, outerline=0, status="notarrived"):
         self.name = name
         self.code = code
         self.arrival = arrival
@@ -8,6 +8,7 @@ class Train(object):
         self.platform = platform
         self.outerline = outerline
         self.status = status
+        self.category = category
         self.vel = 0
         self.body = w.create_rectangle(-350, 30, 0, 45, fill="#e33")
         self.x = w.coords(self.body)[0]
