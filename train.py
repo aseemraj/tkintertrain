@@ -9,10 +9,10 @@ class Train(object):
         self.outerline = outerline
         self.status = status
         self.vel = 0
-        self.body = w.create_rectangle(-350, 30, 0, 40, fill="#e33")
+        self.body = w.create_rectangle(-350, 30, 0, 45, fill="#e33")
         self.x = w.coords(self.body)[0]
         self.y = w.coords(self.body)[1]
-        self.label = w.create_text(self.x+175, self.y, text=str(self.name))
+        self.label = w.create_text(self.x+175, self.y+7, text=str(self.name))
 
     def update(self, w):
         """ Called each frame. """

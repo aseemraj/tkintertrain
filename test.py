@@ -14,55 +14,8 @@ platforml = []          # List of all platforms
 outerl = []             # List of outerlines
 startstate = False
 fps = 100/6
-counter = 0 
+counter = 19*60*60
 timecnt = ''
-
-class schtable(Frame):
-    def __init__(self, parent, rows, columns):
-        global trainl, waitingtrains
-        Frame.__init__(self, parent, background="black")
-        self._widgets = []
-        for row in range(rows):
-            current_row = []
-            for column in range(columns):
-                label = Label(self, text="", borderwidth=0, width=10)
-                label.grid(row=row, column=column, sticky="nsew", padx=1, pady=1)
-                current_row.append(label)
-            self._widgets.append(current_row)
-        for column in range(columns):
-            self.grid_columnconfigure(column, weight=1)
-    def set(self, row, column, value):
-        widget = self._widgets[row][column]
-        widget.configure(text=value)
-    
-    def fill(self):
-        r = 1
-        for train in trainl:
-            self.set(r, 0, train.code)
-            self.set(r, 1, train.name)
-            self.set(r, 2, train.arrival)
-            self.set(r, 3, train.departure)
-            self.set(r, 4, train.platform)
-            r+=1
-
-    def update(self):
-        i = 0
-        while i<len(waitingtrains):
-            self.set(i+1, 0, waitingtrains[i].code)
-            self.set(i+1, 1, waitingtrains[i].name)
-            self.set(i+1, 2, waitingtrains[i].arrival)
-            self.set(i+1, 3, waitingtrains[i].departure)
-            if waitingtrains[i].platform==0:
-                self.set(i+1, 4, '---')
-            else:
-                self.set(i+1, 4, waitingtrains[i].platform)
-            i+=1
-        while i<max(9, len(waitingtrains)):
-            for j in range(5):
-                self.set(i+1, j, "")
-            i+=1
-
-        
 
 class App:
 
@@ -85,17 +38,6 @@ class App:
 
         # self.maketable(self.f)
         self.makebuttons(self.f)
-
-    def maketable(self, arena):
-        global table
-        table = schtable(arena, 10, 5)
-        table.pack(side=TOP, fill=BOTH)
-        table.set(0, 0, "TRAIN CODE")
-        table.set(0, 1, "TRAIN NAME")
-        table.set(0, 2, "ARRIVAL TIME")
-        table.set(0, 3, "DEPARTURE TIME")
-        table.set(0, 4, "ON PLATFORM")
-        table.fill()
 
     def makebuttons(self, arena):
         self.start = Button(arena, text="Start Simulation", command=self.sim)
@@ -130,6 +72,7 @@ class App:
         master.after(10, simulate)
         self.start.config(state=DISABLED)
         self.stop.config(state=NORMAL)
+        data()
     
     def stop(self):
         global startstate
@@ -186,7 +129,6 @@ def finddep(arrival, category):
 
 def simulate():
     global startstate
-    data()
     for t in pltrains:
         if timecnt>=t.departure:
             t.vel = 2
@@ -219,27 +161,24 @@ def simulate():
 
     for t in waitingtrains:
         flag = 0
-        for p in platforml:
-            if not p.occupied and p.status:
-                flag = 1
-                t.vel = 2
-                t.platform = p.platformNo
-                t.status = "arrived"
-                p.occupied = True
-                p.train = t
-                del waitingtrains[waitingtrains.index(t)]
-                pltrains.append(t)
-                for ol in outerl:
-                    if ol.train==t:
-                        ol.train = None
-                        ol.occupied = False
-                        break
-                break
+        if timecnt>=t.arrival:
+            for p in platforml:
+                if not p.occupied and p.status:
+                    flag = 1
+                    t.vel = 2
+                    t.platform = p.platformNo
+                    t.status = "arrived"
+                    p.occupied = True
+                    p.train = t
+                    del waitingtrains[waitingtrains.index(t)]
+                    data()
+                    pltrains.append(t)
+                    break
         if flag==0:
             break
 
     for t in trainl:
-        if(t.x<400):
+        if (t.x<400 and t.status=='arrived') or t.status=='departed':
             t.update(app.w)
     for o in outerl:
         o.update(app.w)
@@ -266,7 +205,7 @@ def data():
     Label(frame,text="Departure Time",font = "Helvetica 14 bold").grid(row=0,column=16,padx=30)
     Label(frame,text="Platform Number",font = "Helvetica 14 bold").grid(row=0,column=20,padx=30)
     i = 0
-    for trains in trainl:
+    for trains in waitingtrains:
        Label(frame,text=trains.code,font = "Helvetica 10").grid(row=i+1,column=4)
        Label(frame,text=trains.name,font = "Helvetica 10").grid(row=i+1,column=8)
        Label(frame,text=trains.arrival,font = "Helvetica 10").grid(row=i+1,column=12)
