@@ -227,7 +227,7 @@ class Scheduler():
 sch = Scheduler()
 sch.makeSchedule()
 
-print "from now"
+# print "from now"
 print sch.trainSchedule
 
 
